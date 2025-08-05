@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener Microservice</title>
+   <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            margin: 20px 0;
+        }
+        input[type="url"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 25%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .example {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+        }
+        .api-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        code {
+            background-color: #f1f3f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            display: none;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>URL Shortener Microservice</h1>
+        
+        <h2>User Stories:</h2>
+        <ol>
+            <li>You can POST a URL to <code>/api/shorturl</code> and get a JSON response with original_url and short_url properties</li>
+            <li>When you visit <code>/api/shorturl/&lt;short_url&gt;</code>, you will be redirected to the original URL</li>
+            <li>If you pass an invalid URL that doesn't follow the valid <code>http://www.example.com</code> format, the JSON response will contain <code>{ error: 'invalid url' }</code></li>
+        </ol>
+
+        <h2>Short URL Creation:</h2>
+        <form id="urlForm">
+            <input type="url" id="urlInput" name="url" placeholder="https://www.example.com" required>
+            <button type="submit">Create Short URL</button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <div class="example">
+            <h3>Example Usage:</h3>
+            <p><strong>POST:</strong> <code>/api/shorturl</code></p>
+            <p><strong>Body:</strong> <code>url=https://www.freecodecamp.org</code></p>
+            <p><strong>Response:</strong> <code>{"original_url":"https://www.freecodecamp.org","short_url":1}</code></p>
+        </div>
+
+        <div class="example">
+            <h3>Example Access:</h3>
+            <p><a href="/api/shorturl/1">/api/shorturl/1</a></p>
+            <p>Will redirect to the original URL</p>
+        </div>
+
+        <div class="api-info">
+            <h3>API Endpoints:</h3>
+            <ul>
+                <li><strong>POST /api/shorturl</strong> - Create a short URL</li>
+                <li><strong>GET /api/shorturl/:short_url</strong> - Redirect to original URL</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('urlForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('urlInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch('/api/shorturl', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `url=${encodeURIComponent(url)}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.error}`;
+                } else {
+                    resultDiv.className = 'result';
+                    resultDiv.innerHTML = `
+                        <strong>Success!</strong><br>
+                        <strong>Original URL:</strong> ${data.original_url}<br>
+                        <strong>Short URL:</strong> <a href="/api/shorturl/${data.short_url}" target="_blank">/api/shorturl/${data.short_url}</a>
+                    `;
+                }
+                
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> Failed to create short URL`;
+                resultDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
